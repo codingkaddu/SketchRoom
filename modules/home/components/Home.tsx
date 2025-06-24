@@ -19,8 +19,14 @@ const Home = () => {
 
   const [roomId, setRoomId] = useState("");
   const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [isPrivate, setIsPrivate] = useState(false);
+
+  // Separate state for join section
+  const [joinPassword, setJoinPassword] = useState("");
+  const [joinIsPrivate, setJoinIsPrivate] = useState(false);
+
+  // Separate state for create section
+  const [createPassword, setCreatePassword] = useState("");
+  const [createIsPrivate, setCreateIsPrivate] = useState(false);
 
   const router = useRouter();
 
@@ -34,7 +40,6 @@ const Home = () => {
       router.push(`/${roomIdFromServer}`);
     });
 
-    // Fix: event receives an object with multiple properties
     const handleJoinedRoom = (data: JoinedRoomPayload) => {
       const { roomId, failed, wrongPassword } = data;
 
@@ -67,14 +72,14 @@ const Home = () => {
   }, [setAtomRoomId]);
 
   const handleCreateRoom = () => {
-    socket.emit("create_room", username, isPrivate ? password : null);
+    socket.emit("create_room", username, createIsPrivate ? createPassword : null);
   };
 
   const handleJoinRoom = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!roomId) return;
 
-    socket.emit("join_room", roomId, username, isPrivate ? password : null);
+    socket.emit("join_room", roomId, username, joinIsPrivate ? joinPassword : null);
   };
 
   return (
@@ -110,6 +115,7 @@ const Home = () => {
 
       <div className="my-4 h-px w-full bg-zinc-200" />
 
+      {/* Join Section */}
       <form className="w-full" onSubmit={handleJoinRoom}>
         <label
           htmlFor="room-id"
@@ -131,20 +137,20 @@ const Home = () => {
           <label className="flex items-center space-x-1 text-white">
             <input
               type="checkbox"
-              checked={isPrivate}
-              onChange={() => setIsPrivate((prev) => !prev)}
+              checked={joinIsPrivate}
+              onChange={() => setJoinIsPrivate((prev) => !prev)}
             />
             <span>Private Room (password required)</span>
           </label>
         </div>
 
-        {isPrivate && (
+        {joinIsPrivate && (
           <input
             className="input w-full mb-4"
             type="password"
             placeholder="Enter room password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={joinPassword}
+            onChange={(e) => setJoinPassword(e.target.value)}
             required
           />
         )}
@@ -160,6 +166,7 @@ const Home = () => {
         <div className="h-px flex-grow bg-zinc-200" />
       </div>
 
+      {/* Create Section */}
       <div className="w-full">
         <label
           className="block mb-2 font-bold text-base"
@@ -172,20 +179,20 @@ const Home = () => {
           <label className="flex items-center space-x-1 text-white">
             <input
               type="checkbox"
-              checked={isPrivate}
-              onChange={() => setIsPrivate((prev) => !prev)}
+              checked={createIsPrivate}
+              onChange={() => setCreateIsPrivate((prev) => !prev)}
             />
             <span>Private Room (password required)</span>
           </label>
         </div>
 
-        {isPrivate && (
+        {createIsPrivate && (
           <input
             className="input w-full mb-4"
             type="password"
             placeholder="Set a password for your room"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={createPassword}
+            onChange={(e) => setCreatePassword(e.target.value)}
             required
           />
         )}
