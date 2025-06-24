@@ -59,7 +59,8 @@ const Home = () => {
   };
 
   return (
-    <div className="flex flex-col items-center py-24">
+    // Changed padding top from py-24 to pt-12 pb-24 to move heading higher
+    <div className="flex flex-col items-center pt-12 pb-24">
       <h1
         className="text-5xl font-extrabold leading-tight sm:text-extra"
         style={{ color: "#ecf0f1" }} // light off-white
@@ -73,9 +74,10 @@ const Home = () => {
         Collaborative drawing in real-time
       </h3>
 
-      <div className="mt-10 flex flex-col gap-2">
+      <div className="mt-10 flex flex-col gap-2 w-80">
+        {/* Made this label larger by increasing font size and weight */}
         <label
-          className="self-start font-bold leading-tight"
+          className="self-start font-extrabold text-lg leading-tight"
           style={{ color: "#ecf0f1" }}
         >
           Who’s wielding the brush?
@@ -95,9 +97,10 @@ const Home = () => {
         className="flex flex-col items-center gap-3"
         onSubmit={handleJoinRoom}
       >
+        {/* Smaller label for join room */}
         <label
           htmlFor="room-id"
-          className="self-start font-bold leading-tight"
+          className="self-start font-bold leading-tight text-base"
           style={{ color: "#ecf0f1" }}
         >
           Enter your session code
@@ -121,8 +124,9 @@ const Home = () => {
       </div>
 
       <div className="flex flex-col items-center gap-2">
+        {/* Smaller label for create session */}
         <h5
-          className="self-start font-bold leading-tight"
+          className="self-start font-bold leading-tight text-base"
           style={{ color: "#ecf0f1" }}
         >
           Start a new session

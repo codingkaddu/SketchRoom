@@ -1,9 +1,6 @@
 import { useEffect } from "react";
-
 import { BsFillImageFill } from "react-icons/bs";
-
 import { optimizeImage } from "@/common/lib/optimizeImage";
-
 import { useMoveImage } from "../../hooks/useMoveImage";
 
 const ImagePicker = () => {
@@ -13,7 +10,6 @@ const ImagePicker = () => {
     const handlePaste = (e: ClipboardEvent) => {
       const items = e.clipboardData?.items;
       if (items) {
-        // eslint-disable-next-line no-restricted-syntax
         for (const item of items) {
           if (item.type.includes("image")) {
             const file = item.getAsFile();
@@ -25,10 +21,7 @@ const ImagePicker = () => {
     };
 
     document.addEventListener("paste", handlePaste);
-
-    return () => {
-      document.removeEventListener("paste", handlePaste);
-    };
+    return () => document.removeEventListener("paste", handlePaste);
   }, [setMoveImage]);
 
   const handleImageInput = () => {
@@ -38,17 +31,23 @@ const ImagePicker = () => {
     fileInput.click();
 
     fileInput.addEventListener("change", () => {
-      if (fileInput && fileInput.files) {
-        const file = fileInput.files[0];
-        optimizeImage(file, (uri) => setMoveImage({ base64: uri }));
+      if (fileInput.files?.[0]) {
+        optimizeImage(fileInput.files[0], (uri) => setMoveImage({ base64: uri }));
       }
     });
   };
 
   return (
-    <button className="btn-icon text-xl" onClick={handleImageInput}>
-      <BsFillImageFill />
-    </button>
+    <div className="flex flex-col items-center gap-1">
+      <button
+        className="btn-icon text-xl"
+        onClick={handleImageInput}
+        title="Insert image"
+      >
+        <BsFillImageFill />
+      </button>
+      <span className="text-xs text-white font-medium">Insert image</span>
+    </div>
   );
 };
 

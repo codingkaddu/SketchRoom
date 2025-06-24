@@ -6,15 +6,19 @@ const BackgroundPicker = () => {
   const { openModal } = useModal();
 
   return (
-    <button
-      className="btn-icon"
-      onClick={() => {
-        console.log("BackgroundPicker clicked");  // <-- Add this log
-        openModal(<BackgroundModal />);
-      }}
-    >
-      <CgScreen />
-    </button>
+    <div className="flex flex-col items-center gap-1">
+      <button
+        className="btn-icon text-2xl"
+        onClick={() => {
+          console.log("BackgroundPicker clicked");
+          openModal(<BackgroundModal />);
+        }}
+        title="Change Background"
+      >
+        <CgScreen />
+      </button>
+      <span className="text-xs text-white font-medium">Background</span> {/* ✅ Label added */}
+    </div>
   );
 };
 
