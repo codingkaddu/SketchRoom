@@ -1,8 +1,12 @@
 import { AiOutlineClose } from "react-icons/ai";
-
 import { useModal } from "@/common/recoil/modal";
 
-const NotFoundModal = ({ id }: { id: string }) => {
+interface NotFoundModalProps {
+  id: string;
+  message?: string;   // optional message prop
+}
+
+const NotFoundModal = ({ id, message }: NotFoundModalProps) => {
   const { closeModal } = useModal();
 
   return (
@@ -11,9 +15,9 @@ const NotFoundModal = ({ id }: { id: string }) => {
         <AiOutlineClose />
       </button>
       <h2 className="text-lg font-bold">
-        Room with id &quot;{id}&quot; does not exist or is full!
+       Incorrect password entered for room with id &quot;{id}&quot; 
       </h2>
-      <h3>Try to join room later.</h3>
+      <h3>{message ?? "Try to join room later."}</h3>
     </div>
   );
 };

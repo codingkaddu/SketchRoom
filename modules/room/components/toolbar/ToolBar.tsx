@@ -5,25 +5,25 @@ import { FiSettings } from "react-icons/fi";
 import { DEFAULT_EASE } from "@/common/constants/easings";
 import { useViewportSize } from "@/common/hooks/useViewportSize";
 import { useRefs } from "../../hooks/useRefs";
-import { useCtx } from "../../hooks/useCtx";   // Import this
+import { useCtx } from "../../hooks/useCtx";
 
 import BackgroundPicker from "./BackgoundPicker";
 import ColorPicker from "./ColorPicker";
 import HistoryBtns from "./HistoryBtns";
 import ImagePicker from "./ImagePicker";
 import LineWidthPicker from "./LineWidthPicker";
-// import ModePicker from "./ModePicker"; // removed as before
 import ShapeSelector from "./ShapeSelector";
 import DownloadButton from "./DownloadButton";
 import ShareButton from "./ShareButton";
 import ExitRoomButton from "./ExitRoomButton";
 import TextInsertionButton from "./TextInsertionButton";
 import ClearCanvasButton from "./ClearCanvasButton";
+import EraserButton from "./EraserButton"; // ✅ New import
 
 const ToolBar = () => {
   const { width } = useViewportSize();
   const { canvasRef, elementsRef } = useRefs();
-  const ctx = useCtx();  // Get canvas 2D context
+  const ctx = useCtx(); // ✅ 2D context
 
   const [opened, setOpened] = useState(false);
 
@@ -57,18 +57,18 @@ const ToolBar = () => {
 
           <TextInsertionButton
             canvasRef={canvasRef}
-            ctx={ctx}   // pass ctx as prop instead of ctxRef
+            ctx={ctx}
             elementsRef={elementsRef}
           />
           <ImagePicker />
           <BackgroundPicker />
 
-          {/* ModePicker removed */}
+          <EraserButton /> {/* ✅ New Eraser tool */}
 
           <HistoryBtns />
           <ClearCanvasButton
             canvasRef={canvasRef}
-            ctx={ctx}   // pass ctx as prop instead of ctxRef
+            ctx={ctx}
             elementsRef={elementsRef}
           />
 

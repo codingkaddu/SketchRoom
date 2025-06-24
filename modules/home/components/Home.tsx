@@ -7,29 +7,47 @@ import { useSetRoomId } from "@/common/recoil/room";
 
 import NotFoundModal from "../modals/NotFound";
 
+type JoinedRoomPayload = {
+  roomId: string;
+  failed?: boolean;
+  wrongPassword?: boolean;
+};
+
 const Home = () => {
   const { openModal } = useModal();
   const setAtomRoomId = useSetRoomId();
 
   const [roomId, setRoomId] = useState("");
   const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [isPrivate, setIsPrivate] = useState(false);
 
   const router = useRouter();
 
   useEffect(() => {
-    document.body.style.backgroundColor = "#2c3e50"; // dark blue-gray background
+    document.body.style.backgroundColor = "#2c3e50";
   }, []);
 
   useEffect(() => {
-    socket.on("created", (roomIdFromServer) => {
+    socket.on("created", (roomIdFromServer: string) => {
       setAtomRoomId(roomIdFromServer);
-      router.push(roomIdFromServer);
+      router.push(`/${roomIdFromServer}`);
     });
 
-    const handleJoinedRoom = (roomIdFromServer: string, failed?: boolean) => {
-      if (!failed) {
-        setAtomRoomId(roomIdFromServer);
-        router.push(roomIdFromServer);
+    // Fix: event receives an object with multiple properties
+    const handleJoinedRoom = (data: JoinedRoomPayload) => {
+      const { roomId, failed, wrongPassword } = data;
+
+      if (wrongPassword) {
+        openModal(
+          <NotFoundModal
+            id={roomId}
+            message="Incorrect password. Please try again."
+          />
+        );
+      } else if (!failed) {
+        setAtomRoomId(roomId);
+        router.push(`/${roomId}`);
       } else {
         openModal(<NotFoundModal id={roomId} />);
       }
@@ -41,7 +59,7 @@ const Home = () => {
       socket.off("created");
       socket.off("joined", handleJoinedRoom);
     };
-  }, [openModal, roomId, router, setAtomRoomId]);
+  }, [openModal, router, setAtomRoomId]);
 
   useEffect(() => {
     socket.emit("leave_room");
@@ -49,95 +67,135 @@ const Home = () => {
   }, [setAtomRoomId]);
 
   const handleCreateRoom = () => {
-    socket.emit("create_room", username);
+    socket.emit("create_room", username, isPrivate ? password : null);
   };
 
   const handleJoinRoom = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!roomId) return;
 
-    if (roomId) socket.emit("join_room", roomId, username);
+    socket.emit("join_room", roomId, username, isPrivate ? password : null);
   };
 
   return (
-    // Changed padding top from py-24 to pt-12 pb-24 to move heading higher
-    <div className="flex flex-col items-center pt-12 pb-24">
+    <div className="flex flex-col items-center pt-12 pb-24 max-w-md mx-auto w-full px-4">
       <h1
-        className="text-5xl font-extrabold leading-tight sm:text-extra"
-        style={{ color: "#ecf0f1" }} // light off-white
+        className="text-5xl font-extrabold leading-tight sm:text-extra text-center"
+        style={{ color: "#ecf0f1" }}
       >
         SketchRoom by Akhil
       </h1>
       <h3
-        className="text-xl sm:text-2xl"
-        style={{ color: "#bdc3c7" }} // lighter grayish text
+        className="text-xl sm:text-2xl mb-10 text-center"
+        style={{ color: "#bdc3c7" }}
       >
         Collaborative drawing in real-time
       </h3>
 
-      <div className="mt-10 flex flex-col gap-2 w-80">
-        {/* Made this label larger by increasing font size and weight */}
+      <div className="mb-8 w-full">
         <label
-          className="self-start font-extrabold text-lg leading-tight"
+          className="block mb-2 font-extrabold text-lg"
           style={{ color: "#ecf0f1" }}
         >
           Who’s wielding the brush?
         </label>
         <input
-          className="input"
-          id="room-id"
+          className="input w-full"
           placeholder="Username..."
           value={username}
           onChange={(e) => setUsername(e.target.value.slice(0, 15))}
+          required
         />
       </div>
 
-      <div className="my-8 h-px w-96 bg-zinc-200" />
+      <div className="my-4 h-px w-full bg-zinc-200" />
 
-      <form
-        className="flex flex-col items-center gap-3"
-        onSubmit={handleJoinRoom}
-      >
-        {/* Smaller label for join room */}
+      <form className="w-full" onSubmit={handleJoinRoom}>
         <label
           htmlFor="room-id"
-          className="self-start font-bold leading-tight text-base"
+          className="block mb-2 font-bold text-base"
           style={{ color: "#ecf0f1" }}
         >
           Enter your session code
         </label>
         <input
-          className="input"
+          className="input w-full mb-4"
           id="room-id"
           placeholder="Room id..."
           value={roomId}
           onChange={(e) => setRoomId(e.target.value)}
+          required
         />
-        <button className="btn" type="submit">
+
+        <div className="flex items-center mb-4 space-x-2">
+          <label className="flex items-center space-x-1 text-white">
+            <input
+              type="checkbox"
+              checked={isPrivate}
+              onChange={() => setIsPrivate((prev) => !prev)}
+            />
+            <span>Private Room (password required)</span>
+          </label>
+        </div>
+
+        {isPrivate && (
+          <input
+            className="input w-full mb-4"
+            type="password"
+            placeholder="Enter room password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        )}
+
+        <button className="btn w-full" type="submit">
           Join Session
         </button>
       </form>
 
-      <div className="my-8 flex w-96 items-center gap-2">
-        <div className="h-px w-full bg-zinc-200" />
+      <div className="my-8 flex w-full items-center gap-2">
+        <div className="h-px flex-grow bg-zinc-200" />
         <p className="text-zinc-400">or</p>
-        <div className="h-px w-full bg-zinc-200" />
+        <div className="h-px flex-grow bg-zinc-200" />
       </div>
 
-      <div className="flex flex-col items-center gap-2">
-        {/* Smaller label for create session */}
-        <h5
-          className="self-start font-bold leading-tight text-base"
+      <div className="w-full">
+        <label
+          className="block mb-2 font-bold text-base"
           style={{ color: "#ecf0f1" }}
         >
           Start a new session
-        </h5>
+        </label>
 
-        <button className="btn" onClick={handleCreateRoom}>
+        <div className="mb-4 flex items-center space-x-2">
+          <label className="flex items-center space-x-1 text-white">
+            <input
+              type="checkbox"
+              checked={isPrivate}
+              onChange={() => setIsPrivate((prev) => !prev)}
+            />
+            <span>Private Room (password required)</span>
+          </label>
+        </div>
+
+        {isPrivate && (
+          <input
+            className="input w-full mb-4"
+            type="password"
+            placeholder="Set a password for your room"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        )}
+
+        <button className="btn w-full" onClick={handleCreateRoom}>
           Create Session
         </button>
       </div>
 
-      <p className="mt-16 text-sm" style={{ color: "#95a5a6" }}>
+      <p className="mt-16 text-sm text-center" style={{ color: "#95a5a6" }}>
         Made with ❤️ by Akhil Jaiswal
       </p>
     </div>

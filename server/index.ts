@@ -1,7 +1,4 @@
 import { createServer } from "http";
-
-import {} from "@/common/types/global";
-
 import express from "express";
 import next, { NextApiHandler } from "next";
 import { Server } from "socket.io";
@@ -12,11 +9,23 @@ const dev = process.env.NODE_ENV !== "production";
 const nextApp = next({ dev });
 const nextHandler: NextApiHandler = nextApp.getRequestHandler();
 
+interface Move {
+  id?: string;
+  [key: string]: any;
+}
+
+interface Room {
+  usersMoves: Map<string, Move[]>;
+  drawed: Move[];
+  users: Map<string, string>;
+  password?: string; // added password for private rooms
+}
+
 nextApp.prepare().then(async () => {
   const app = express();
   const server = createServer(app);
 
-  const io = new Server<ClientToServerEvents, ServerToClientEvents>(server);
+  const io = new Server(server);
 
   app.get("/health", async (_, res) => {
     res.send("Healthy");
@@ -27,11 +36,11 @@ nextApp.prepare().then(async () => {
   const addMove = (roomId: string, socketId: string, move: Move) => {
     const room = rooms.get(roomId)!;
 
-    if (!room.users.has(socketId)) {
+    if (!room.usersMoves.has(socketId)) {
       room.usersMoves.set(socketId, [move]);
+    } else {
+      room.usersMoves.get(socketId)!.push(move);
     }
-
-    room.usersMoves.get(socketId)!.push(move);
   };
 
   const undoMove = (roomId: string, socketId: string) => {
@@ -57,11 +66,12 @@ nextApp.prepare().then(async () => {
 
       if (userMoves) room.drawed.push(...userMoves);
       room.users.delete(socketId);
+      room.usersMoves.delete(socketId);
 
       socket.leave(roomId);
     };
 
-    socket.on("create_room", (username) => {
+    socket.on("create_room", (username: string, password: string | null) => {
       let roomId: string;
       do {
         roomId = Math.random().toString(36).substring(2, 6);
@@ -73,27 +83,48 @@ nextApp.prepare().then(async () => {
         usersMoves: new Map([[socket.id, []]]),
         drawed: [],
         users: new Map([[socket.id, username]]),
+        password: password || undefined, // save password if private
       });
 
       io.to(socket.id).emit("created", roomId);
     });
 
-    socket.on("check_room", (roomId) => {
+    socket.on("check_room", (roomId: string) => {
       if (rooms.has(roomId)) socket.emit("room_exists", true);
       else socket.emit("room_exists", false);
     });
 
-    socket.on("join_room", (roomId, username) => {
+    // <<<<< Add this new event handler here >>>>>
+    socket.on("is_room_private", (roomId: string) => {
+      const room = rooms.get(roomId);
+      const isPrivate = room?.password !== undefined;
+      socket.emit("room_private_status", isPrivate);
+    });
+
+    socket.on("join_room", (roomId: string, username: string, password: string | null) => {
       const room = rooms.get(roomId);
 
-      if (room && room.users.size < 12) {
-        socket.join(roomId);
+      if (!room) {
+        io.to(socket.id).emit("joined", { roomId, failed: true });
+        return;
+      }
 
-        room.users.set(socket.id, username);
-        room.usersMoves.set(socket.id, []);
+      if (room.password && room.password !== password) {
+        io.to(socket.id).emit("joined", { roomId, failed: true, wrongPassword: true });
+        return;
+      }
 
-        io.to(socket.id).emit("joined", roomId);
-      } else io.to(socket.id).emit("joined", "", true);
+      if (room.users.size >= 12) {
+        io.to(socket.id).emit("joined", { roomId, failed: true });
+        return;
+      }
+
+      socket.join(roomId);
+
+      room.users.set(socket.id, username);
+      room.usersMoves.set(socket.id, []);
+
+      io.to(socket.id).emit("joined", { roomId, failed: false });
     });
 
     socket.on("joined_room", () => {
@@ -126,7 +157,6 @@ nextApp.prepare().then(async () => {
 
       const timestamp = Date.now();
 
-      // eslint-disable-next-line no-param-reassign
       move.id = v4();
 
       addMove(roomId, socket.id, { ...move, timestamp });
@@ -165,7 +195,6 @@ nextApp.prepare().then(async () => {
   app.all("*", (req: any, res: any) => nextHandler(req, res));
 
   server.listen(port, () => {
-    // eslint-disable-next-line no-console
     console.log(`> Ready on http://localhost:${port}`);
   });
 });

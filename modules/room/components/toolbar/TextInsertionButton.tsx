@@ -15,11 +15,20 @@ const TextInsertionButton: React.FC<Props> = ({
     const text = prompt("Enter the text to insert:");
     if (!text || !canvasRef.current || !ctx) return;
 
+    // Prompt for text color with default white
+    let color = prompt("Enter text color (name or hex):", "white") || "white";
+
+    // Optional: Validate basic hex color or fallback to white
+    if (!/^#([0-9A-F]{3}){1,2}$/i.test(color) && !/^[a-z]+$/i.test(color)) {
+      // Not a valid hex or color name, fallback to white
+      color = "white";
+    }
+
     const x = parseInt(prompt("Enter X position:", "50") || "50", 10);
     const y = parseInt(prompt("Enter Y position:", "50") || "50", 10);
 
     ctx.font = "20px Arial";
-    ctx.fillStyle = "white";
+    ctx.fillStyle = color;
     ctx.fillText(text, x, y);
 
     elementsRef.current.push({
@@ -28,7 +37,7 @@ const TextInsertionButton: React.FC<Props> = ({
       x,
       y,
       font: ctx.font,
-      color: ctx.fillStyle,
+      color,
     });
   };
 
