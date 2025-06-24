@@ -1,4 +1,3 @@
-// ToolBar.tsx (Updated to include working Text and Clear Canvas buttons)
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { FiSettings } from "react-icons/fi";
@@ -6,13 +5,14 @@ import { FiSettings } from "react-icons/fi";
 import { DEFAULT_EASE } from "@/common/constants/easings";
 import { useViewportSize } from "@/common/hooks/useViewportSize";
 import { useRefs } from "../../hooks/useRefs";
+import { useCtx } from "../../hooks/useCtx";   // Import this
 
 import BackgroundPicker from "./BackgoundPicker";
 import ColorPicker from "./ColorPicker";
 import HistoryBtns from "./HistoryBtns";
 import ImagePicker from "./ImagePicker";
 import LineWidthPicker from "./LineWidthPicker";
-import ModePicker from "./ModePicker";
+// import ModePicker from "./ModePicker"; // removed as before
 import ShapeSelector from "./ShapeSelector";
 import DownloadButton from "./DownloadButton";
 import ShareButton from "./ShareButton";
@@ -22,7 +22,9 @@ import ClearCanvasButton from "./ClearCanvasButton";
 
 const ToolBar = () => {
   const { width } = useViewportSize();
-  const { canvasRef, ctxRef, elementsRef } = useRefs();
+  const { canvasRef, elementsRef } = useRefs();
+  const ctx = useCtx();  // Get canvas 2D context
+
   const [opened, setOpened] = useState(false);
 
   useEffect(() => {
@@ -53,13 +55,22 @@ const ToolBar = () => {
           <ColorPicker />
           <LineWidthPicker />
 
-          <TextInsertionButton canvasRef={canvasRef} ctxRef={ctxRef} />
+          <TextInsertionButton
+            canvasRef={canvasRef}
+            ctx={ctx}   // pass ctx as prop instead of ctxRef
+            elementsRef={elementsRef}
+          />
           <ImagePicker />
           <BackgroundPicker />
 
-          <ModePicker />
+          {/* ModePicker removed */}
+
           <HistoryBtns />
-          <ClearCanvasButton canvasRef={canvasRef} ctxRef={ctxRef} elementsRef={elementsRef} />
+          <ClearCanvasButton
+            canvasRef={canvasRef}
+            ctx={ctx}   // pass ctx as prop instead of ctxRef
+            elementsRef={elementsRef}
+          />
 
           <ShareButton />
           <DownloadButton />

@@ -2,16 +2,24 @@ import { MdClear } from "react-icons/md";
 
 interface Props {
   canvasRef: React.RefObject<HTMLCanvasElement>;
-  ctxRef: React.RefObject<CanvasRenderingContext2D | null>;
+  ctx: CanvasRenderingContext2D | undefined;
   elementsRef: React.MutableRefObject<any[]>;
 }
 
-const ClearCanvasButton: React.FC<Props> = ({ canvasRef, ctxRef, elementsRef }) => {
+const ClearCanvasButton: React.FC<Props> = ({
+  canvasRef,
+  ctx,
+  elementsRef,
+}) => {
   const handleClear = () => {
-    if (!canvasRef.current || !ctxRef.current) return;
+    if (!canvasRef.current || !ctx) return;
 
-    ctxRef.current.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-    elementsRef.current = []; // clear shapes or moves
+    const canvas = canvasRef.current;
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    elementsRef.current = [];
   };
 
   return (

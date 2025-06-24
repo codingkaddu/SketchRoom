@@ -12,9 +12,9 @@ const HistoryBtns = () => {
   const savedMoves = useSavedMoves();
 
   return (
-    <div className="flex flex-col items-center gap-3">
-      {/* Undo */}
-      <div className="flex flex-col items-center gap-1">
+    <div className="flex flex-col items-center gap-1 select-none">
+      <div className="flex gap-3">
+        {/* Undo */}
         <button
           className="btn-icon text-xl"
           ref={undoRef}
@@ -23,11 +23,8 @@ const HistoryBtns = () => {
         >
           <FaUndo />
         </button>
-        <span className="text-xs text-white font-medium">Undo</span>
-      </div>
 
-      {/* Redo */}
-      <div className="flex flex-col items-center gap-1">
+        {/* Redo */}
         <button
           className="btn-icon text-xl"
           ref={redoRef}
@@ -36,8 +33,10 @@ const HistoryBtns = () => {
         >
           <FaRedo />
         </button>
-        <span className="text-xs text-white font-medium">Redo</span>
       </div>
+      <span className="text-xs text-white font-medium whitespace-nowrap">
+        Undo / Redo
+      </span>
     </div>
   );
 };

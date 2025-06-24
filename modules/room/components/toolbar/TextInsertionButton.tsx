@@ -2,20 +2,34 @@ import { FaRegKeyboard } from "react-icons/fa";
 
 interface Props {
   canvasRef: React.RefObject<HTMLCanvasElement>;
-  ctxRef: React.RefObject<CanvasRenderingContext2D | null>;
+  ctx: CanvasRenderingContext2D | undefined;
+  elementsRef: React.MutableRefObject<any[]>;
 }
 
-const TextInsertionButton: React.FC<Props> = ({ canvasRef, ctxRef }) => {
+const TextInsertionButton: React.FC<Props> = ({
+  canvasRef,
+  ctx,
+  elementsRef,
+}) => {
   const handleInsertText = () => {
     const text = prompt("Enter the text to insert:");
-    if (!text || !canvasRef.current || !ctxRef.current) return;
+    if (!text || !canvasRef.current || !ctx) return;
 
     const x = parseInt(prompt("Enter X position:", "50") || "50", 10);
     const y = parseInt(prompt("Enter Y position:", "50") || "50", 10);
 
-    ctxRef.current.font = "20px Arial";
-    ctxRef.current.fillStyle = "white";
-    ctxRef.current.fillText(text, x, y);
+    ctx.font = "20px Arial";
+    ctx.fillStyle = "white";
+    ctx.fillText(text, x, y);
+
+    elementsRef.current.push({
+      type: "text",
+      text,
+      x,
+      y,
+      font: ctx.font,
+      color: ctx.fillStyle,
+    });
   };
 
   return (
